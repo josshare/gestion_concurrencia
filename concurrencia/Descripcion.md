@@ -108,13 +108,5 @@ Este programa crea 5 hilos utilizando la clase `Thread` de Java. Cada hilo es un
 3. **join():** El método `join()` permite que un hilo espere a que otro hilo termine.  Esto es similar a `pthread_join()` en C. Es importante usar `join()` para asegurar que el programa principal no termine antes de que los hilos hayan completado su trabajo.
 4. **Ejecución Concurrente:**  Los hilos en Java se ejecutan de forma concurrente, gestionados por el JVM (Java Virtual Machine) y el sistema operativo subyacente. El orden preciso de ejecución puede variar.
 
-Espero que esto te ayude a entender cómo implementar la concurrencia en C y Java. Avísame si tienes alguna otra pregunta.
 
-<div style="text-align: center">⁂</div>
-
-[^1]: https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/54051796/416dcb20-56c2-4024-86a9-45b801b6eccd/U4_ProcesosEHilosenC.pdf
-
-[^2]: https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/54051796/d09ad87c-c5a8-4b64-83f3-2892e3c1db96/U4_JavaThreads.pdf
-
-[^3]: https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/54051796/5514d2fe-7fbd-4c33-aa5a-11514ea9a704/U4_ProgramacionOpenMP.pdf
 
