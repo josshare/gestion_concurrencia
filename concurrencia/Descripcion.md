@@ -1,112 +1,133 @@
-## Concurrencia en C (Usando Pthreads)
+De acuerdo, comprendo. Basaré las explicaciones y ejemplos en los documentos proporcionados, enfocándome en la creación de hilos y procesos en C y en los hilos en Java.
 
-**Código de Ejemplo:**
+## Concurrencia en C (`U4_ProcesosEHilosenC.pdf`)
+
+**Código de Ejemplo (Creación de Procesos):**
+
+```c
+#include <sys/types.h>
+#include <unistd.h>
+#include <stdio.h>
+
+int main(int argc, char *argv[]) {
+    pid_t pid;
+    pid = fork();
+
+    if (pid == -1) {
+        printf("Fallo en fork\n");
+        return -1;
+    } else if (!pid) {
+        // Proceso hijo
+        printf("Proceso hijo: PID %d\n", getpid());
+    } else {
+        // Proceso padre
+        printf("Proceso padre: PID %d\n", getpid());
+    }
+
+    return 0;
+}
+```
+
+**Código de Ejemplo (Creación de Hilos):**
 
 ```c
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include <pthread.h>
 
-// Función que ejecutará cada hilo
-void *tarea_hilo(void *argumento) {
-    int id_hilo = *(int *)argumento;
-    printf("Hilo %d: ¡Hola desde el hilo!\n", id_hilo);
-    pthread_exit(NULL);
+void *hola(void *arg) {
+    char *msg = "Hola";
+    int i;
+    for (i = 0; i < strlen(msg); i++) {
+        printf(" %c", msg[i]);
+        fflush(stdout);
+        usleep(1000000); // 1 segundo
+    }
+    return NULL;
 }
 
-int main() {
-    pthread_t hilos[^5]; // Arreglo para almacenar los identificadores de los hilos
-    int ids[^5]; // Arreglo para los IDs de los hilos
-
-    // Crear 5 hilos
-    for (int i = 0; i < 5; i++) {
-        ids[i] = i;
-        int resultado = pthread_create(&hilos[i], NULL, tarea_hilo, &ids[i]);
-        if (resultado) {
-            printf("Error al crear el hilo %d\n", i);
-            exit(-1);
-        }
+void *mundo(void *arg) {
+    char *msg = " mundo ";
+    int i;
+    for (i = 0; i < strlen(msg); i++) {
+        printf(" %c", msg[i]);
+        fflush(stdout);
+        usleep(1000000); // 1 segundo
     }
+    return NULL;
+}
 
-    // Esperar a que todos los hilos terminen
-    for (int i = 0; i < 5; i++) {
-        pthread_join(hilos[i], NULL);
-    }
+int main(int argc, char *argv[]) {
+    pthread_t h1;
+    pthread_t h2;
 
-    printf("Hilo principal: Todos los hilos han terminado.\n");
-    pthread_exit(NULL);
+    pthread_create(&h1, NULL, hola, NULL);
+    pthread_create(&h2, NULL, mundo, NULL);
+
+    pthread_join(h1, NULL); // Esperar a que el hilo h1 termine
+    pthread_join(h2, NULL); // Esperar a que el hilo h2 termine
+
+    printf("Fin\n");
+
+    return 0;
 }
 ```
 
 **Descripción del Ejercicio:**
 
-Este programa crea 5 hilos. Cada hilo ejecuta la función `tarea_hilo`, que simplemente imprime un mensaje que incluye el ID del hilo. El hilo principal espera a que todos los hilos terminen antes de imprimir su propio mensaje de finalización.
+* **Creación de Procesos:** El primer ejemplo utiliza la función `fork()` para crear un nuevo proceso.  El proceso hijo ejecuta el mismo código que el padre, pero con un PID diferente. `fork()` retorna 0 en el hijo y el PID del hijo en el padre.
+* **Creación de Hilos:** El segundo ejemplo utiliza la biblioteca `pthread` para crear dos hilos que imprimen "Hola" y "mundo" respectivamente, letra por letra con una pausa entre cada letra. Se utiliza `pthread_join()` para asegurar que el programa principal espere a que los hilos terminen antes de imprimir "Fin".
 
 **Explicación de la Implementación (Énfasis en la Concurrencia):**
 
-1. **Pthreads (POSIX Threads):**  Utilizamos la biblioteca `pthread` para crear y gestionar hilos en C.
-2. **pthread\_create():** La función `pthread_create()` es la clave para la concurrencia.  Crea un nuevo hilo y le asigna una función para ejecutar (`tarea_hilo` en este caso).
-    * El primer argumento es un puntero a una variable `pthread_t` que almacenará el ID del nuevo hilo.
-    * El segundo argumento son atributos del hilo (generalmente `NULL` para usar los atributos por defecto).
-    * El tercer argumento es la función que ejecutará el hilo.
-    * El cuarto argumento es un argumento que se pasará a la función del hilo.
-3. **pthread\_join():** La función `pthread_join()` hace que el hilo principal espere a que un hilo específico termine.  Esto es importante para asegurar que el programa no termine antes de que todos los hilos hayan completado su trabajo.
-4. **Ejecución Concurrente:** Los hilos se ejecutan de forma concurrente, lo que significa que el sistema operativo los intercalará en el tiempo.  El orden exacto en que se ejecutan los hilos puede variar de una ejecución a otra.
+1. **Procesos vs. Hilos:**
+    * **Procesos:**  Cada proceso tiene su propio espacio de memoria aislado. La comunicación entre procesos (si es necesaria) es más compleja y generalmente implica mecanismos como pipes o memoria compartida. La creación de procesos es más costosa en términos de recursos del sistema.
+    * **Hilos:** Los hilos comparten el mismo espacio de memoria del proceso. Esto hace que la comunicación entre hilos sea más fácil (ya que pueden acceder a las mismas variables), pero también requiere cuidado para evitar condiciones de carrera y otros problemas de concurrencia. La creación de hilos es generalmente más rápida y consume menos recursos que la creación de procesos.
+2. **`fork()`:** La función `fork()` crea un duplicado del proceso actual. Tanto el proceso padre como el hijo continúan la ejecución desde el punto donde se llamó a `fork()`. Es crucial verificar el valor de retorno de `fork()` para determinar si el código se está ejecutando en el proceso padre o en el proceso hijo.
+3. **`pthread_create()`:** La función `pthread_create()` crea un nuevo hilo dentro del proceso actual. Requiere una función de inicio (que recibe un puntero `void*` como argumento y retorna un puntero `void*`) que será ejecutada por el nuevo hilo.
+4. **`pthread_join()`:** Esta función hace que el hilo que la llama espere a que otro hilo termine. Es fundamental para la sincronización y para asegurar que el programa no termine prematuramente.
+5. **Compilación con `pthread`:** Al compilar un programa que utiliza `pthread`, es necesario enlazar la biblioteca `pthread` usando la opción `-lpthread` al compilar con `gcc`.  Por ejemplo: `gcc -o mi_programa mi_programa.c -lpthread`
 
-## Concurrencia en Java (Usando Threads)
+## Concurrencia en Java (`U4_JavaThreads.pdf`)
 
 **Código de Ejemplo:**
 
 ```java
-class MiHilo extends Thread {
-    private int id;
+public class PingPong extends Thread {
+    private String word;
 
-    public MiHilo(int id) {
-        this.id = id;
+    public PingPong(String s) {
+        word = s;
     }
 
-    @Override
     public void run() {
-        System.out.println("Hilo " + id + ": ¡Hola desde el hilo!");
+        for (int i = 0; i < 3000; i++) {
+            System.out.print(word);
+            System.out.flush(); // Asegura que la salida se muestre inmediatamente
+        }
     }
-}
 
-public class EjemploConcurrencia {
     public static void main(String[] args) {
-        MiHilo[] hilos = new MiHilo[^5];
+        Thread tP = new PingPong("P");
+        Thread tp = new PingPong("p");
 
-        // Crear y iniciar 5 hilos
-        for (int i = 0; i < 5; i++) {
-            hilos[i] = new MiHilo(i);
-            hilos[i].start();
-        }
-
-        // Esperar a que todos los hilos terminen
-        try {
-            for (int i = 0; i < 5; i++) {
-                hilos[i].join();
-            }
-        } catch (InterruptedException e) {
-            System.out.println("El hilo principal fue interrumpido.");
-        }
-
-        System.out.println("Hilo principal: Todos los hilos han terminado.");
+        tp.start();
+        tP.start();
     }
 }
 ```
 
 **Descripción del Ejercicio:**
 
-Este programa crea 5 hilos utilizando la clase `Thread` de Java. Cada hilo es una instancia de la clase `MiHilo`, que extiende la clase `Thread` y sobrescribe el método `run()`. El método `run()` imprime un mensaje que incluye el ID del hilo. El hilo principal espera a que todos los hilos terminen antes de imprimir su propio mensaje de finalización.
+Este programa crea dos hilos, uno que imprime la letra "P" 3000 veces y otro que imprime la letra "p" 3000 veces.  La salida resultante mostrará una mezcla de "P" y "p" debido a la ejecución concurrente de los hilos.
 
 **Explicación de la Implementación (Énfasis en la Concurrencia):**
 
-1. **Clase Thread:** En Java, la concurrencia se logra principalmente a través de la clase `Thread`.  Hay dos formas comunes de crear hilos:
-    * Extender la clase `Thread` y sobrescribir el método `run()`.
-    * Implementar la interfaz `Runnable` y pasar una instancia de la clase `Runnable` al constructor de un objeto `Thread`.
-2. **start():** El método `start()` es crucial.  Cuando llamas a `start()` en un objeto `Thread`, Java crea un nuevo hilo del sistema operativo y comienza a ejecutar el método `run()` de ese objeto en el nuevo hilo.  **No llames a `run()` directamente**, ya que eso simplemente ejecutaría el código en el hilo actual, sin crear un nuevo hilo concurrente.
-3. **join():** El método `join()` permite que un hilo espere a que otro hilo termine.  Esto es similar a `pthread_join()` en C. Es importante usar `join()` para asegurar que el programa principal no termine antes de que los hilos hayan completado su trabajo.
-4. **Ejecución Concurrente:**  Los hilos en Java se ejecutan de forma concurrente, gestionados por el JVM (Java Virtual Machine) y el sistema operativo subyacente. El orden preciso de ejecución puede variar.
-
-
+1. **Extender `Thread`:** La clase `PingPong` extiende la clase `Thread`. Esto permite que las instancias de `PingPong` se ejecuten como hilos separados.
+2. **`run()` method:** El método `run()` contiene el código que se ejecutará cuando el hilo se inicie. En este caso, imprime la palabra asignada al hilo repetidamente.
+3. **`start()` method:** El método `start()` es crucial. Llama a `start()`  se crea un nuevo hilo y se inicia la ejecución del método `run()` en ese nuevo hilo. **Nunca llames a `run()` directamente**, ya que eso simplemente ejecutará el código en el hilo actual, sin crear un nuevo hilo concurrente.
+4. **Ejecución Concurrente:**  Los hilos `tP` y `tp` se ejecutan concurrentemente. El orden exacto en que se ejecutan y la cantidad de "P" o "p" que se imprimen consecutivamente pueden variar debido a la forma en que el sistema operativo programa los hilos.
+5. **`System.out.flush()`:** Es importante utilizar `System.out.flush()` dentro del bucle para asegurarse de que la salida se escriba inmediatamente en la consola. De lo contrario, la salida podría almacenarse en búfer y no mostrarse en el orden esperado.
 
