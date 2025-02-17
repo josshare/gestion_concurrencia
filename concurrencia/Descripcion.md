@@ -1,16 +1,3 @@
-<img src="https://r2cdn.perplexity.ai/pplx-full-logo-primary-dark%402x.png" class="logo" width="120"/>
-
-# Revisa los ejemplos de implementación en cada uno de los lenguajes de programación que se presentan en los materiales de estudio y abstrae la forma de implementar la concurrencia en cada uno.
-
-Realiza un ejemplo en C y uno en Java, puedes tomar los que se proporcionan en los materiales de revisión o realizar uno diferente.
-Redacta un informe en este mismo documento que incluya:
-Código de ejemplo	
-Descripción del ejercicio realizado
-Imagen con resultado de la ejecución
-Realiza una explicación general de la implementación haciendo énfasis en la parte de concurrencia.
----
-De acuerdo, puedo ayudarte con eso. Aquí tienes ejemplos de código en C y Java que demuestran la concurrencia, junto con una explicación de cómo funcionan.
-
 ## Concurrencia en C (Usando Pthreads)
 
 **Código de Ejemplo:**
